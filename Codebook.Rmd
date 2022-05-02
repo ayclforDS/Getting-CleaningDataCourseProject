@@ -3,23 +3,47 @@ title: "Codebook"
 output: html_notebook
 ---
 
-# Project:
-# Peer-graded Assignment: Getting and Cleaning Data Course Project
+First, read both of the training and testing tables
 
-# Perpose:
-# The purpose of this project is to demonstrate your ability to collect, work with, and clean a data set.
+xtrain <- read.table(file.path(dataFile, "train/X_train.txt"))
+ytrain <- read.table(file.path(dataFile, "train/y_train.txt"))
+subject_train <- read.table(file.path(dataFile, "train/subject_train.txt"))
 
-# Description:
-# The purpose of this project is to demonstrate your ability to collect, work with, and clean a data set. The goal is to prepare tidy data that can be used for later analysis. You will be graded by your peers on a series of yes/no questions related to the project. You will be required to submit: 1) a tidy data set as described below, 2) a link to a Github repository with your script for performing the analysis, and 3) a code book that describes the variables, the data, and any transformations or work that you performed to clean up the data called CodeBook.md. You should also include a README.md in the repo with your scripts. This repo explains how all of the scripts work and how they are connected. One of the most exciting areas in all of data science right now is wearable computing - see for example this article . Companies like Fitbit, Nike, and Jawbone Up are racing to develop the most advanced algorithms to attract new users. The data linked to from the course website represent data collected from the accelerometers from the Samsung Galaxy S smartphone.
+xtest <- read.table(file.path(dataFile, "test/X_test.txt"))
+ytest <- read.table(file.path(dataFile, "test/y_test.txt"))
+subject_test <- read.table(file.path(dataFile, "test/subject_test.txt"))
 
-# Data Source:
-# UCI MRL
+Then, merge the tables
 
-# Outcome:
-# 1. Merged the training and the test sets to create one data set.
-# 2. Extracted only the measurements on the mean and standard deviation for each measurement. 
-# 3. Used descriptive activity names to name the activities in the data set
-# 4. Appropriately labeled the data set with descriptive variable names. 
-# 5. From the data set in step 4, created a second, independent tidy data set with the average of each variable for each activity and each subject.
+mrg_train <- cbind(ytrain, subject_train, xtrain)
+mrg_test <- cbind(ytest, subject_test, xtest)
+data_all <- rbind(mrg_train, mrg_test)
 
+Set a subject of all the mean and standard deviation
 
+mean_std <- (grepl("activityID", col_Names) | grepl("subjectID", col_Names) | grepl("mean.", col_Names) | grepl("std.", col_Names))
+
+Uses descriptive activity names to name the activities in the data set
+
+names_activities <- merge(sub_mean_std, activityLabels, by = "activityID", all.x = TRUE)
+levels(names_activities$activityID) <- c("WALKING", "WALKING UPSTAIRS", "WALKING DOWNSTAIRS", "SITTING", "STANDING", "LYING")
+names(names_activities) <- gsub("^t", "Time", names(names_activities))
+names(names_activities) <- gsub("^f","Frequency", names(names_activities))
+names(names_activities) <- gsub("Acc","Accelerometer", names(names_activities))
+names(names_activities) <- gsub("Gyro","Gyroscope", names(names_activities))
+names(names_activities) <- gsub("Mag","Magnitude", names(names_activities))
+names(names_activities) <- gsub("BodyBody","Body", names(names_activities))
+names(names_activities) <- gsub("tBody","TimeBody", names(names_activities))
+names(names_activities) <- gsub("angle","Angle", names(names_activities))
+names(names_activities) <- gsub("gravity","Gravity", names(names_activities))
+names(names_activities) <- gsub("-mean()",".Mean", names(names_activities))
+names(names_activities) <- gsub("-std()",".STD", names(names_activities))
+names(names_activities) <- gsub("-freq()",".Frequency", names(names_activities))
+
+Create a second, independent tidy data set with the average of each variable for each activity and each subject
+
+secTidyData <- names_activities %>% group_by(subjectID, activityID) %>% summarise(across(everything(), mean))
+
+Save data as text file
+
+write.table(secTidyData, "secTidyData.txt", row.names = FALSE)

@@ -63,7 +63,7 @@ mean_std <- (grepl("activityID", col_Names) | grepl("subjectID", col_Names) | gr
 # Creat subset to get the dataset
 sub_mean_std <- data_all[, mean_std == TRUE]
 
-# Uses descriptive activity names to name the activities in the data set.
+# Uses descriptive activity names to name the activities in the data set
 names_activities <- merge(sub_mean_std, activityLabels, by = "activityID", all.x = TRUE)
 levels(names_activities$activityID) <- c("WALKING", "WALKING UPSTAIRS", "WALKING DOWNSTAIRS", "SITTING", "STANDING", "LYING")
 names(names_activities) <- gsub("^t", "Time", names(names_activities))
@@ -79,7 +79,7 @@ names(names_activities) <- gsub("-mean()",".Mean", names(names_activities))
 names(names_activities) <- gsub("-std()",".STD", names(names_activities))
 names(names_activities) <- gsub("-freq()",".Frequency", names(names_activities))
 
-# Create a second, independent tidy data set with the average of each variable for each activity and each subject.
+# Create a second, independent tidy data set with the average of each variable for each activity and each subject
 secTidyData <- names_activities %>% group_by(subjectID, activityID) %>% summarise(across(everything(), mean))
 
 # Save data as text file
