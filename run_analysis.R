@@ -4,6 +4,7 @@
 #4. Appropriately labels the data set with descriptive variable names.
 #5. From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
 
+library(dplyr)
 
 # Download and unzip data
 Url1 <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
@@ -64,10 +65,22 @@ sub_mean_std <- data_all[, mean_std == TRUE]
 
 # Uses descriptive activity names to name the activities in the data set.
 names_activities <- merge(sub_mean_std, activityLabels, by = "activityID", all.x = TRUE)
+levels(names_activities$activityID) <- c("WALKING", "WALKING UPSTAIRS", "WALKING DOWNSTAIRS", "SITTING", "STANDING", "LYING")
+names(names_activities) <- gsub("^t", "Time", names(names_activities))
+names(names_activities) <- gsub("^f","Frequency", names(names_activities))
+names(names_activities) <- gsub("Acc","Accelerometer", names(names_activities))
+names(names_activities) <- gsub("Gyro","Gyroscope", names(names_activities))
+names(names_activities) <- gsub("Mag","Magnitude", names(names_activities))
+names(names_activities) <- gsub("BodyBody","Body", names(names_activities))
+names(names_activities) <- gsub("tBody","TimeBody", names(names_activities))
+names(names_activities) <- gsub("angle","Angle", names(names_activities))
+names(names_activities) <- gsub("gravity","Gravity", names(names_activities))
+names(names_activities) <- gsub("-mean()",".Mean", names(names_activities))
+names(names_activities) <- gsub("-std()",".STD", names(names_activities))
+names(names_activities) <- gsub("-freq()",".Frequency", names(names_activities))
 
 # Create a second, independent tidy data set with the average of each variable for each activity and each subject.
-secTidyData <- aggregate(. ~subjectID + activityID, names_activities, mean)
-secTidyData <- secTidyData[order(secTidyData$subjectID, secTidyData$activityID),]
+secTidyData <- names_activities %>% group_by(subjectID, activityID) %>% summarise(across(everything(), mean))
 
 # Save data as text file
 write.table(secTidyData, "secTidyData.txt", row.names = FALSE)
